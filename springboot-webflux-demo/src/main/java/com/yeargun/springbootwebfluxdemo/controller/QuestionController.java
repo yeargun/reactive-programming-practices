@@ -10,18 +10,18 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/questions")
+@RequestMapping("/question")
 public class QuestionController {
 
     @Autowired
     private QuestionService service;
 
-    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping
     public Flux<QuestionDTO> getAllQuestions() {
         return service.getAllQuestions();
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public Mono<QuestionDTO> getQuestion(@PathVariable String id) {
         return service.getQuestion(id);
     }

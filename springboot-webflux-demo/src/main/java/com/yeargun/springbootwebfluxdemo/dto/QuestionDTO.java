@@ -13,6 +13,6 @@ public class QuestionDTO {
 
     private String id;
     private String questionText;
-    private List<String> choiceTexts;
+    private List<String> choices;
 
 }
