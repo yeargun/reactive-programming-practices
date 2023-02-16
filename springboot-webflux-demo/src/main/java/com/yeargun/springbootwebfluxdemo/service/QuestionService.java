@@ -1,33 +1,46 @@
 package com.yeargun.springbootwebfluxdemo.service;
 
-import com.yeargun.springbootwebfluxdemo.dao.QuestionDao;
-import com.yeargun.springbootwebfluxdemo.dto.Question;
+import com.yeargun.springbootwebfluxdemo.dto.QuestionDTO;
+import com.yeargun.springbootwebfluxdemo.repository.QuestionRepository;
+import com.yeargun.springbootwebfluxdemo.utils.AppUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 @Service
 public class QuestionService {
 
     @Autowired
-    private QuestionDao dao;
+    private QuestionRepository repository;
 
-    public List<Question> loadAllQuestions(){
-        long start = System.currentTimeMillis();
-        List<Question> questions = dao.getQuestions();
-        long end = System.currentTimeMillis();
-        System.out.println("Total exec time:" + (end-start));
-        return questions;
+    public Flux<QuestionDTO> getAllQuestions(){
+        return repository.findAll().map(AppUtils::entityToDTO);
     }
 
-    public Flux<Question> loadAllQuestionsStream(){
-        long start = System.currentTimeMillis();
+    public Mono<QuestionDTO> getQuestion(String id){
+        return repository.findById(id).map(AppUtils::entityToDTO);
+    }
 
-        Flux<Question> questions = dao.getQuestonsStream();
-        long end = System.currentTimeMillis();
-        System.out.println("Total exec time:" + (end-start));
-        return questions;
+
+
+    public Mono<QuestionDTO> saveQuestion(Mono<QuestionDTO> questionDTOMono){
+        System.out.println("saving question ...");
+        return  questionDTOMono.map(AppUtils::dtoToEntity)
+                .flatMap(repository::insert)
+                .map(AppUtils::entityToDTO);
+    }
+
+    public Mono<QuestionDTO> updateQuestion(Mono<QuestionDTO> questionDTOMono,String id){
+        return repository.findById(id)
+                .flatMap(p->questionDTOMono.map(AppUtils::dtoToEntity)
+                        .doOnNext(e->e.setId(id)))
+                .flatMap(repository::save)
+                .map(AppUtils::entityToDTO);
+
+    }
+
+    public Mono<Void> deleteQuestion(String id){
+        return repository.deleteById(id);
     }
 }
